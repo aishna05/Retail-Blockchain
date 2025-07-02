@@ -1,13 +1,19 @@
 "use client";
 import { useState } from "react";
-import  getIPFSDataFromQR  from "@/lib/qr";
+import { getIPFSDataFromQR } from "@/lib/qr";
+
+type ProductData = { cid: string; role: string; timestamp: number };
 
 export default function CustomerDashboard() {
-  const [productData, setProductData] = useState(null);
+  const [productData, setProductData] = useState<ProductData | null>(null);
 
   const handleScan = (qrData: string) => {
     const ipfsData = getIPFSDataFromQR(qrData);
-    setProductData(ipfsData);
+    if (ipfsData) {
+      setProductData(ipfsData);
+    } else {
+      setProductData(null);
+    }
   };
 
   return (
