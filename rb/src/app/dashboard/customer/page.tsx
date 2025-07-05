@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import {useState} from "react";
 import { getIPFSDataFromQR } from "@/lib/qr";
 
 type ProductData = { cid: string; role: string; timestamp: number };
