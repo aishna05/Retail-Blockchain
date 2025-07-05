@@ -7,11 +7,12 @@ import { useEffect } from "react";
 export default function HomePage() {
   const router = useRouter();
   const { user, isSignedIn, isLoaded } = useUser();
+  let path = "";
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       const userEmail = user?.emailAddresses?.[0]?.emailAddress;
-      let path = "";
+     
 
       switch (true) {
         case userEmail === "zurard07@gmail.com":
@@ -27,12 +28,12 @@ export default function HomePage() {
           path = "/dashboard/raw";
           break;
         default:
-          path = "/dashboard/customer";
+          path = "/dashboard/customer"; // Default path if no match found
       }
-
       console.log("Redirecting to path: ", path);
       router.push(path);
     }
+
   }, [isLoaded, isSignedIn, user, router]);
 
   return (
