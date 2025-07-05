@@ -28,16 +28,12 @@ export default function HomePage() {
           path = "/dashboard/raw";
           break;
         default:
-          path = "/"; // Default path if no match found
+          path = "/dashboard/customer"; // Default path if no match found
       }
       console.log("Redirecting to path: ", path);
       router.push(path);
     }
-    else {
-      path = "/testing-ipfs"; // Redirect to testing-ipfs if not signed in
-      console.log("Redirecting to path: ", path);
-      router.push(path);
-    }
+
   }, [isLoaded, isSignedIn, user, router]);
 
   return (

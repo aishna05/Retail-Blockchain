@@ -35,7 +35,7 @@ export default function Home() {
     setFile(e.target?.files?.[0]);
   };
 
-  console.log("------JWT TOKEN ----------------", process.env.PINATA_JWT)
+  console.log("------JWT TOKEN ", process.env.PINATA_JWT)
   console.log(process.env.NEXT_PUBLIC_GATEWAY_URL);
 
  return (

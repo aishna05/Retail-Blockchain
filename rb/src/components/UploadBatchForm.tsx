@@ -1,13 +1,17 @@
 "use client";
 import { uploadToIPFS } from "@/lib/ipfs";
 import { storeOnEthereum } from "@/lib/ethereum";
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { json } from "stream/consumers";
 
 interface UploadBatchFormProps {
   role: string;
 }
 
 export default function UploadBatchForm({ role }: UploadBatchFormProps) {
+  const router = useRouter();
+
   const [file, setFile] = useState<File | null>(null);
   const [businessName, setBusinessName] = useState("");
   const [businessLocation, setBusinessLocation] = useState(""); 
@@ -15,19 +19,74 @@ export default function UploadBatchForm({ role }: UploadBatchFormProps) {
   const [productName, setProductName] = useState("");
   const [productQuantity, setProductQuantity] = useState("");
   const [pricePerUnit, setPricePerUnit] = useState(""); 
+  const [dateOfManufacture, setDateOfManufacture] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
   const totalPrice = parseFloat(productQuantity) * parseFloat(pricePerUnit) || 0;
+
+  const [url, setUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return alert("Upload a file");
-    const ipfsHash = await uploadToIPFS(file);
-    await storeOnEthereum(ipfsHash, role);
-    alert("Uploaded successfully");
+    
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 
+                         'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         'text/plain', 'text/csv'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      return alert("Please upload a valid file type (PDF, JPG, PNG, DOC, DOCX, TXT, CSV)");
+    }
+    
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      return alert("File size must be less than 5MB");
+    }
+
+    try {
+      // Method 1: FormData (Recommended for file uploads)
+      setUploading(true);
+          const formData = new FormData();
+      formData.append('file', file);
+      const MetaData = {
+        businessName,
+        businessLocation,
+        orderId,
+        productName,
+        productQuantity,
+        pricePerUnit,
+        batchNumber,
+        totalPrice,
+        timeOfOrder: new Date().toISOString(),
+      };
+      formData.append('metadata', JSON.stringify(MetaData));
+      formData.set("file", file);
+      const uploadRequest = await fetch("/api/files", {
+        method: "POST",
+        body: formData,
+      });
+      const signedUrl = await uploadRequest.json();
+      setUrl(signedUrl);
+      setUploading(false);
+    } catch (e) {
+      console.log(e);
+      setUploading(false);
+      alert("Trouble uploading file");
+    }
   };
 
+  useEffect(() => {
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    setDateOfManufacture(formattedDate);
+  }, []);
+
+      
   return (
-    <form
+    <div>
+      <form
       onSubmit={handleUpload}
       className="max-w-lg mx-auto mt-10 bg-white shadow-lg rounded-xl p-8 flex flex-col gap-6"
     >
@@ -94,13 +153,14 @@ export default function UploadBatchForm({ role }: UploadBatchFormProps) {
       </div>
       <div className="flex justify-between items-center bg-gray-100 p-3 rounded-lg text-gray-700">
         <span>Time of Order:</span>
-        <span>{new Date().toLocaleString()}</span>
+        <span>{dateOfManufacture}</span>
       </div>
       <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 p-6 rounded-lg cursor-pointer hover:border-green-500 transition">
         <span className="text-gray-600 mb-2">Upload File</span>
         <input
           type="file"
           className="hidden"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.csv"
           onChange={(e) => {
             const files = e.target.files;
             if (files && files[0]) {
@@ -121,5 +181,24 @@ export default function UploadBatchForm({ role }: UploadBatchFormProps) {
         Upload
       </button>
     </form>
+
+
+        <div>
+          {url && (
+            <div className="mt-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">File Uploaded Successfully!</h3>
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View Uploaded File
+              </a>
+            </div>
+          )}
+        </div>
+
+    </div>
   );
 }
