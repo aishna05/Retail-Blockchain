@@ -1,5 +1,5 @@
 "use client";
-import {useState} from "react";
+import { useState } from "react";
 import { getIPFSDataFromQR } from "@/lib/qr";
 
 type ProductData = { cid: string; role: string; timestamp: number };
@@ -17,14 +17,22 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="p-6">
-      <h1>Scan Product QR</h1>
-      {/* Simulate QR scan */}
-      <button onClick={() => handleScan("{qr_data}")}>Simulate QR Scan</button>
-
-      {productData && (
-        <pre className="bg-gray-100 p-4 mt-4 rounded">{JSON.stringify(productData, null, 2)}</pre>
-      )}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-black to-gray-900">
+      <div className="w-full max-w-md bg-gray-900 rounded-xl shadow-lg p-8">
+        <h1 className="text-2xl font-bold text-white mb-6 text-center">Scan Product QR</h1>
+        {/* Simulate QR scan */}
+        <button
+          onClick={() => handleScan("{qr_data}")}
+          className="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded transition"
+        >
+          Simulate QR Scan
+        </button>
+        {productData && (
+          <pre className="bg-gray-800 p-4 mt-6 rounded text-gray-100 text-sm overflow-x-auto">
+            {JSON.stringify(productData, null, 2)}
+          </pre>
+        )}
+      </div>
     </div>
   );
 }
